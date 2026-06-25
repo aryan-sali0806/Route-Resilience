@@ -21,6 +21,7 @@ venv/
 data/raw_tiffs/*
 data/ground_truth_masks/*
 data/osm_vectors/*
+data/deepgloab_road_extraction/*
 !data/**/.gitkeep
 
 # Model weights
