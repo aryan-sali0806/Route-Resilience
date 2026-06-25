@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+torch
+torchvision
+opencv-python
+albumentations
+rasterio
+networkx
+osmnx
+scikit-image
+scipy
+numpy
+python-multipart
