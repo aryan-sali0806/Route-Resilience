@@ -17,16 +17,17 @@ venv/
 .env
 .env.*
 
-# Data / model weights
-data/
-*.pth
-*.pt
-*.onnx
-*.tiff
-*.tif
-*.png
-*.jpg
-*.jpeg
+# Data — large files never go to GitHub (keep .gitkeep placeholders only)
+data/raw_tiffs/*
+data/ground_truth_masks/*
+data/osm_vectors/*
+!data/**/.gitkeep
+
+# Model weights
+backend/ml_engine/weights/*.pth
+
+# JS / Node
+node_modules/
 
 # OS
 .DS_Store
