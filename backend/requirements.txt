@@ -11,3 +11,5 @@ scikit-image
 scipy
 numpy
 python-multipart
+segmentation-models-pytorch
+tqdm
