@@ -27,20 +27,27 @@ class DeepGlobeDataset(Dataset):
         image_dir: str,
         mask_dir: str,
         transform: A.Compose | None = None,
+        ids: list[str] | None = None,
     ) -> None:
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.transform = transform if transform is not None else _DEFAULT_TRANSFORM
 
-        self.ids: list[str] = sorted(
-            fname.replace("_sat.jpg", "")
-            for fname in os.listdir(image_dir)
-            if fname.endswith("_sat.jpg")
-        )
+        if ids is not None:
+            self.ids = list(ids)
+        else:
+            self.ids = sorted(
+                fname.replace("_sat.jpg", "")
+                for fname in os.listdir(image_dir)
+                if fname.endswith("_sat.jpg")
+                and os.path.exists(
+                    os.path.join(mask_dir, fname.replace("_sat.jpg", "_mask.png"))
+                )
+            )
 
         if not self.ids:
             raise FileNotFoundError(
-                f"No '*_sat.jpg' images found in '{image_dir}'"
+                f"No '*_sat.jpg' + '*_mask.png' pairs found in '{image_dir}'"
             )
 
     def __len__(self) -> int:

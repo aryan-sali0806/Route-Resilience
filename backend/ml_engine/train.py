@@ -14,6 +14,7 @@ Colab quick-start
 
 import argparse
 import os
+import random
 import sys
 
 import albumentations as A
@@ -143,9 +144,12 @@ def parse_args() -> argparse.Namespace:
         help="Folder containing *_sat.jpg and *_mask.png for training",
     )
     p.add_argument(
-        "--val-dir", required=True,
-        help="Folder containing *_sat.jpg and *_mask.png for validation",
+        "--val-dir", default=None,
+        help="Folder with *_sat.jpg + *_mask.png for validation. "
+             "If omitted (or has no masks), --val-split of --train-dir is held out.",
     )
+    p.add_argument("--val-split",   type=float, default=0.15,
+                   help="Fraction of training data used for validation when --val-dir has no masks.")
     p.add_argument("--epochs",      type=int,   default=50)
     p.add_argument("--batch-size",  type=int,   default=8)
     p.add_argument("--lr",          type=float, default=1e-4)
@@ -158,9 +162,41 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
-    # DeepGlobe co-locates images and masks in the same directory
-    train_ds = DeepGlobeDataset(args.train_dir, args.train_dir, transform=TRAIN_TRANSFORM)
-    val_ds   = DeepGlobeDataset(args.val_dir,   args.val_dir,   transform=VAL_TRANSFORM)
+    # Build the ID pool from the training directory (only pairs that have masks).
+    all_ids = sorted(
+        f.replace("_sat.jpg", "")
+        for f in os.listdir(args.train_dir)
+        if f.endswith("_sat.jpg")
+        and os.path.exists(os.path.join(args.train_dir, f.replace("_sat.jpg", "_mask.png")))
+    )
+
+    # Check whether --val-dir has any labeled data.
+    val_has_masks = False
+    if args.val_dir:
+        val_has_masks = any(
+            os.path.exists(os.path.join(args.val_dir, f.replace("_sat.jpg", "_mask.png")))
+            for f in os.listdir(args.val_dir)
+            if f.endswith("_sat.jpg")
+        )
+        if not val_has_masks:
+            print(
+                f"[warn] --val-dir '{args.val_dir}' has no mask files "
+                f"(DeepGlobe valid/ is unlabeled). "
+                f"Falling back to a {args.val_split:.0%} random split of --train-dir."
+            )
+
+    if val_has_masks:
+        train_ds = DeepGlobeDataset(args.train_dir, args.train_dir, transform=TRAIN_TRANSFORM)
+        val_ds   = DeepGlobeDataset(args.val_dir,   args.val_dir,   transform=VAL_TRANSFORM)
+    else:
+        random.seed(42)
+        random.shuffle(all_ids)
+        split_at  = int(len(all_ids) * (1.0 - args.val_split))
+        train_ids = all_ids[:split_at]
+        val_ids   = all_ids[split_at:]
+        train_ds  = DeepGlobeDataset(args.train_dir, args.train_dir, TRAIN_TRANSFORM, ids=train_ids)
+        val_ds    = DeepGlobeDataset(args.train_dir, args.train_dir, VAL_TRANSFORM,   ids=val_ids)
+
     print(f"Train samples: {len(train_ds)}  |  Val samples: {len(val_ds)}")
 
     train_loader = DataLoader(
