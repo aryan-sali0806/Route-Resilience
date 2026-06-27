@@ -220,9 +220,29 @@ def main() -> None:
     scaler    = torch.GradScaler(device.type)
 
     os.makedirs(WEIGHTS_DIR, exist_ok=True)
-    best_iou = 0.0
+    best_iou    = 0.0
+    start_epoch = 1  # ===== Resume Training =====
 
-    for epoch in range(1, args.epochs + 1):
+    # ===== Resume Training: load checkpoint if one exists =====
+    if os.path.exists(BEST_MODEL_PATH):
+        try:
+            checkpoint = torch.load(BEST_MODEL_PATH, map_location=device)  # ===== Resume Training =====
+            model.load_state_dict(checkpoint["model_state_dict"])           # ===== Resume Training =====
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])   # ===== Resume Training =====
+            best_iou    = checkpoint["val_iou"]                             # ===== Resume Training =====
+            start_epoch = checkpoint["epoch"] + 1                          # ===== Resume Training =====
+            if "scaler_state_dict" in checkpoint:                           # ===== Resume Training =====
+                scaler.load_state_dict(checkpoint["scaler_state_dict"])     # ===== Resume Training =====
+            print("Loaded checkpoint successfully.")                        # ===== Resume Training =====
+            print(f"Resuming from epoch {start_epoch}.")                   # ===== Resume Training =====
+            print(f"Best validation IoU = {best_iou:.4f}.")               # ===== Resume Training =====
+        except Exception as e:                                              # ===== Resume Training =====
+            print(f"[warn] Checkpoint load failed ({e}). Starting from scratch.")  # ===== Resume Training =====
+            best_iou    = 0.0                                               # ===== Resume Training =====
+            start_epoch = 1                                                 # ===== Resume Training =====
+    # ===== End Resume Training =====
+
+    for epoch in range(start_epoch, args.epochs + 1):  # ===== Resume Training =====
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device, scaler)
         val_loss, val_iou = validate(model, val_loader, criterion, device)
 
@@ -241,6 +261,7 @@ def main() -> None:
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "val_iou": best_iou,
+                    "scaler_state_dict": scaler.state_dict(),  # ===== Resume Training =====
                 },
                 BEST_MODEL_PATH,
             )
