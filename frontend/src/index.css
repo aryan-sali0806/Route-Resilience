@@ -1,15 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void:     #0B132B;
-  --color-navy:     #1C2541;
-  --color-panel:    #243055;
-  --color-cyan:     #48CAE4;
-  --color-cyan-dim: #2196C4;
-  --color-muted:    #8899AA;
-
-  --shadow-cyan:    0 0 12px 2px rgba(72, 202, 228, 0.45);
-  --shadow-cyan-lg: 0 0 28px 6px rgba(72, 202, 228, 0.30);
+  --color-void:     #030712;
+  --color-navy:     #0d1117;
+  --color-panel:    #111827;
+  --color-cyan:     #22d3ee;
+  --color-orange:   #f97316;
+  --color-muted:    #6b7280;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -18,20 +15,28 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #0B132B;
+  background: #030712;
   color: #e2e8f0;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Faint space-grid background */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
 /* Leaflet */
 .leaflet-container {
-  background: #0B132B;
+  background: #030712;
   height: 100%;
   width: 100%;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #1C2541; }
-::-webkit-scrollbar-thumb { background: #48CAE4; border-radius: 3px; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 3px; }
